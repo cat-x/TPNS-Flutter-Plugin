@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'dart:io';
 import 'package:tpns_flutter_plugin/android/xg_android_api.dart';
@@ -92,20 +93,20 @@ class XgFlutterPlugin {
 
   /// 获取sdk版本号
   static Future<String?> get xgSdkVersion async {
-    final String? version = await _channel.invokeMethod('xgSdkVersion');
+    final String? version = await safeInvokeMethod('xgSdkVersion');
     return version;
   }
 
   /// 获取信鸽token
   static Future<String?> get xgToken async {
-    final String? xgToken = await _channel.invokeMethod('xgToken');
+    final String? xgToken = await safeInvokeMethod('xgToken');
     return xgToken;
   }
 
   /// 获取厂商Token，区别于tpns token
   static Future<String?> get otherPushToken async {
     final String? otherPushToken =
-        await _channel.invokeMethod('getOtherPushToken');
+        await safeInvokeMethod('getOtherPushToken');
     return otherPushToken;
   }
 
@@ -113,15 +114,16 @@ class XgFlutterPlugin {
   static Future<String?> get otherPushType async {
     if (Platform.isAndroid) {
       final String? otherPushType =
-          await _channel.invokeMethod('getOtherPushType');
+          await safeInvokeMethod('getOtherPushType');
       return otherPushType;
     }
+    return null;
   }
 
   /// 集群域名配置（非广州集群需要在startXg之前调用此函数）
   void configureClusterDomainName(String domainStr) {
     if (Platform.isIOS) {
-      _channel.invokeMethod('configureClusterDomainName',
+      safeInvokeMethod('configureClusterDomainName',
           <String, dynamic>{'domainStr': domainStr});
     } else {
       xgApi.setServerSuffix(serverAddr: domainStr);
@@ -136,7 +138,7 @@ class XgFlutterPlugin {
   void startXg(String accessId, String accessKey,
       {bool withInAppAlert = true}) {
     if (Platform.isIOS) {
-      _channel.invokeMethod('startXg', <String, dynamic>{
+      safeInvokeMethod('startXg', <String, dynamic>{
         'accessId': accessId,
         'accessKey': accessKey,
         'withInAppAlert': withInAppAlert,
@@ -150,12 +152,12 @@ class XgFlutterPlugin {
 
   /// 注销推送服务（注销后无法再收到任何推送）
   void stopXg() {
-    _channel.invokeMethod('stopXg');
+    safeInvokeMethod('stopXg');
   }
 
   /// debug模式
   void setEnableDebug(bool enableDebug) {
-    _channel.invokeMethod(
+    safeInvokeMethod(
         'setEnableDebug', <String, dynamic>{'enableDebug': enableDebug});
   }
 
@@ -167,7 +169,7 @@ class XgFlutterPlugin {
   void setAccount(String account, AccountType accountType) {
     String _accountType = accountType.toString().split('.').last;
     if (Platform.isIOS) {
-      _channel.invokeMethod('setAccount',
+      safeInvokeMethod('setAccount',
           <String, dynamic>{'account': account, 'accountType': _accountType});
     } else {
       xgApi.bindAccountWithType(account: account, accountType: _accountType);
@@ -180,7 +182,7 @@ class XgFlutterPlugin {
   void deleteAccount(String account, AccountType accountType) {
     String _accountType = accountType.toString().split('.').last;
     if (Platform.isIOS) {
-      _channel.invokeMethod('deleteAccount',
+      safeInvokeMethod('deleteAccount',
           <String, dynamic>{'account': account, 'accountType': _accountType});
     } else {
       xgApi.delAccountWithType(account: account, accountType: _accountType);
@@ -190,7 +192,7 @@ class XgFlutterPlugin {
   /// 删除所有账号
   void cleanAccounts() {
     if (Platform.isIOS) {
-      _channel.invokeMethod('cleanAccounts');
+      safeInvokeMethod('cleanAccounts');
     } else {
       xgApi.delAllAccount();
     }
@@ -202,7 +204,7 @@ class XgFlutterPlugin {
   /// tags类型为字符串数组(标签字符串不允许有空格或者是tab字符) [tagStr]
   void addTags(List<String> tags) {
     if (Platform.isIOS) {
-      _channel.invokeMethod('addTags', tags);
+      safeInvokeMethod('addTags', tags);
     } else {
       xgApi.addXgTags(tagNames: tags);
     }
@@ -212,7 +214,7 @@ class XgFlutterPlugin {
   /// tags类型为字符串数组(标签字符串不允许有空格或者是tab字符) [tagStr]
   void setTags(List<String> tags) {
     if (Platform.isIOS) {
-      _channel.invokeMethod('setTags', tags);
+      safeInvokeMethod('setTags', tags);
     } else {
       xgApi.setXgTags(tagNames: tags);
     }
@@ -222,7 +224,7 @@ class XgFlutterPlugin {
   /// tags类型为字符串数组(标签字符串不允许有空格或者是tab字符) [tagStr]
   void deleteTags(List<String> tags) {
     if (Platform.isIOS) {
-      _channel.invokeMethod('deleteTags', tags);
+      safeInvokeMethod('deleteTags', tags);
     } else {
       xgApi.deleteXgTags(tagNames: tags);
     }
@@ -231,7 +233,7 @@ class XgFlutterPlugin {
   /// 清除所有标签
   void cleanTags() {
     if (Platform.isIOS) {
-      _channel.invokeMethod('cleanTags');
+      safeInvokeMethod('cleanTags');
     } else {
       xgApi.cleanXgTags();
     }
@@ -243,7 +245,7 @@ class XgFlutterPlugin {
   /// attributes 类型为 Map 字典(k, v字符串不允许有空格或者是tab字符) {'key': 'value'}
   void upsertAttributes(Map<String, String> attributes) {
     if (Platform.isIOS) {
-      _channel.invokeMethod('upsertAttributes', attributes);
+      safeInvokeMethod('upsertAttributes', attributes);
     } else {
       xgApi.upsertAttributes(attributes: attributes);
     }
@@ -253,7 +255,7 @@ class XgFlutterPlugin {
   /// attributes 类型为字符串数组(字符串不允许有空格或者是tab字符) ['key']
   void delAttributes(List<String> attributes) {
     if (Platform.isIOS) {
-      _channel.invokeMethod('delAttributes', attributes);
+      safeInvokeMethod('delAttributes', attributes);
     } else {
       xgApi.delAttributes(attributes: attributes);
     }
@@ -263,7 +265,7 @@ class XgFlutterPlugin {
   /// attributes 类型为 Map 字典(k, v字符串不允许有空格或者是tab字符) {'key': 'value'}
   void clearAndAppendAttributes(Map<String, String> attributes) {
     if (Platform.isIOS) {
-      _channel.invokeMethod('clearAndAppendAttributes', attributes);
+      safeInvokeMethod('clearAndAppendAttributes', attributes);
     } else {
       xgApi.clearAndAppendAttributes(attributes: attributes);
     }
@@ -272,7 +274,7 @@ class XgFlutterPlugin {
   /// 清除全部用户属性
   void clearAttributes() {
     if (Platform.isIOS) {
-      _channel.invokeMethod('clearAttributes');
+      safeInvokeMethod('clearAttributes');
     } else {
       xgApi.clearAttributes();
     }
@@ -313,7 +315,7 @@ class XgFlutterPlugin {
     required XGBindType bindType,
   }) {
     if (Platform.isIOS) {
-      _channel.invokeMethod('bindWithIdentifier',
+      safeInvokeMethod('bindWithIdentifier',
           {'identify': identify, 'bindType': bindType.index});
     } else {
       if (bindType.index == XGBindType.tag.index) {
@@ -330,7 +332,7 @@ class XgFlutterPlugin {
     required XGBindType bindType,
   }) {
     if (Platform.isIOS) {
-      _channel.invokeMethod('updateBindIdentifier',
+      safeInvokeMethod('updateBindIdentifier',
           {'identify': identify, 'bindType': bindType.index});
     } else {
       if (bindType.index == XGBindType.tag.index) {
@@ -347,7 +349,7 @@ class XgFlutterPlugin {
     required XGBindType bindType,
   }) {
     if (Platform.isIOS) {
-      _channel.invokeMethod('unbindWithIdentifier',
+      safeInvokeMethod('unbindWithIdentifier',
           {'identify': identify, 'bindType': bindType.index});
     } else {
       if (bindType.index == XGBindType.tag.index) {
@@ -367,7 +369,7 @@ class XgFlutterPlugin {
     required XGBindType bindType,
   }) {
     if (Platform.isIOS) {
-      _channel.invokeMethod('bindWithIdentifiers',
+      safeInvokeMethod('bindWithIdentifiers',
           {'identifys': identifys, 'bindType': bindType.index});
     } else {
       if (bindType.index == XGBindType.tag.index) {
@@ -385,7 +387,7 @@ class XgFlutterPlugin {
     required XGBindType bindType,
   }) {
     if (Platform.isIOS) {
-      _channel.invokeMethod('updateBindIdentifiers',
+      safeInvokeMethod('updateBindIdentifiers',
           {'identifys': identifys, 'bindType': bindType.index});
     } else {
       if (bindType.index == XGBindType.tag.index) {
@@ -403,7 +405,7 @@ class XgFlutterPlugin {
     required XGBindType bindType,
   }) {
     if (Platform.isIOS) {
-      _channel.invokeMethod('unbindWithIdentifiers',
+      safeInvokeMethod('unbindWithIdentifiers',
           {'identifys': identifys, 'bindType': bindType.index});
     } else {
       if (bindType.index == XGBindType.tag.index) {
@@ -415,7 +417,7 @@ class XgFlutterPlugin {
   /// 清除全部账号或标签
   void clearAllIdentifier(XGBindType bindType) {
     if (Platform.isIOS) {
-      _channel.invokeMethod(
+      safeInvokeMethod(
           'clearAllIdentifier', <String, dynamic>{'bindType': bindType.index});
     } else {
       if (bindType.index == XGBindType.tag.index) {
@@ -496,6 +498,18 @@ class XgFlutterPlugin {
         return _xgPushClickAction!(call.arguments.cast<String, dynamic>());
       default:
         throw new UnsupportedError("Unrecongnized Event");
+    }
+  }
+
+  static Future<T?> safeInvokeMethod<T>(String method, [dynamic arguments]) {
+    try {
+      return _channel.invokeMethod(method, arguments);
+    } catch (e, s) {
+      if (!kReleaseMode) {
+        print('Error invoking method $method: $e $s');
+        rethrow;
+      }
+      return Future.value(null);
     }
   }
 }
