@@ -1,5 +1,6 @@
 package com.tencent.tpns.plugin;
 
+import android.annotation.SuppressLint;
 import android.util.Log;
 import android.content.Context;
 import android.content.pm.PackageInfo;
@@ -20,10 +21,15 @@ import java.util.UUID;
 public class DeviceInfoUtil {
 
     /* 获取手机唯一序列号 */
+    @SuppressLint({"MissingPermission", "HardwareIds"})
     public static String getDeviceId(Context context) {
         TelephonyManager tm =
                 (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-        String deviceId = tm.getDeviceId();// 手机设备ID，这个ID会被用为用户访问统计
+        String deviceId = null;// 手机设备ID，这个ID会被用为用户访问统计
+        try {
+            deviceId = tm.getDeviceId();
+        } catch (Exception ignored) {
+        }
         if (deviceId == null) {
             deviceId = UUID.randomUUID().toString().replaceAll("-", "");
         }
