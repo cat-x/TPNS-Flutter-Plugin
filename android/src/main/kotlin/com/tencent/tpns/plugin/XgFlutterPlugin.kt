@@ -2,11 +2,10 @@
 
 package com.tencent.tpns.plugin
 
-import android.annotation.SuppressLint
+//import androidx.annotation.Keep
 import android.content.Context
 import android.net.Uri
 import android.util.Log
-import androidx.annotation.Keep
 import com.tencent.android.tpush.XGIOperateCallback
 import com.tencent.android.tpush.XGPushConfig
 import com.tencent.android.tpush.XGPushConstants
@@ -17,24 +16,43 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.StandardMethodCodec
+import java.util.Arrays
 
-@Keep
+
+//@Keep
 public class XgFlutterPlugin() : FlutterPlugin, MethodCallHandler {
     private var channel: MethodChannel? = null
     private var context: Context? = null
-    val isNotInitialized: Boolean
-        get() = channel == null
 
-    init {
-        INSTANCE = this
-    }
 
     companion object {
         //        private const val  TAG: String = "XgFlutterPlugin | Flutter"
         private const val TAG: String = "TPNSPlugin | Flutter"
+        var instances: MutableList<XgFlutterPlugin> = ArrayList<XgFlutterPlugin>()
+        val isNotInitialized: Boolean
+            get() = instances.isEmpty() || instances.any { it.channel == null }
 
-        @SuppressLint("StaticFieldLeak")
-        lateinit var INSTANCE: XgFlutterPlugin
+        private fun invokeMethod(method: String, args: Any?) {
+            for (instance in instances) {
+                instance.channel?.invokeMethod(method, args)
+            }
+        }
+
+        /**
+         * 调用Flutter 函数
+         *
+         * @param methodName 函数名称
+         * @param para       参数
+         */
+        fun toFlutterMethod(methodName: String, para: Map<String, Any?>?) {
+            Log.i(TAG, "调用Flutter=>${methodName}")
+            MainHandler.getInstance().post { invokeMethod(methodName, para) }
+        }
+
+        fun toFlutterMethod(methodName: String, para: String) {
+            Log.i(TAG, "调用Flutter=>${methodName}")
+            MainHandler.getInstance().post { invokeMethod(methodName, para) }
+        }
     }
 
     override fun onMethodCall(p0: MethodCall, p1: MethodChannel.Result) {
@@ -94,22 +112,6 @@ public class XgFlutterPlugin() : FlutterPlugin, MethodCallHandler {
         }
     }
 
-
-    /**
-     * 调用Flutter 函数
-     *
-     * @param methodName 函数名称
-     * @param para       参数
-     */
-    fun toFlutterMethod(methodName: String, para: Map<String, Any?>?) {
-        Log.i(TAG, "调用Flutter=>${methodName}")
-        MainHandler.getInstance().post { channel?.invokeMethod(methodName, para) }
-    }
-
-    fun toFlutterMethod(methodName: String, para: String) {
-        Log.i(TAG, "调用Flutter=>${methodName}")
-        MainHandler.getInstance().post { channel?.invokeMethod(methodName, para) }
-    }
 
     /**
      * 设置accessId
@@ -881,29 +883,89 @@ public class XgFlutterPlugin() : FlutterPlugin, MethodCallHandler {
     }
 
 
-    override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
-//        val taskQueue =
+    override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
+        //判断是不是主进程
+//        if (isMainProcess(binding.applicationContext)) {
+        binding.binaryMessenger
+        //        val taskQueue =
 //            flutterPluginBinding.binaryMessenger.makeBackgroundTaskQueue()
-        context = flutterPluginBinding.applicationContext
+        context = binding.applicationContext
         channel = MethodChannel(
-            flutterPluginBinding.binaryMessenger,
+            binding.binaryMessenger,
             "tpns_flutter_plugin",
             StandardMethodCodec.INSTANCE
 //                ,taskQueue
         )
         channel?.setMethodCallHandler(this)
-
         Log.i(TAG, "methodChannel onAttachedToEngine XgFlutterPlugin")
-        Log.i(TAG, "onAttachedToEngine instance = $this")
+        instances.add(this)
+        Log.i(TAG, "onAttachedToEngine instance = $this ,count = ${instances.size}")
         XGMessageReceiver.sendHandlerMessage()
+//        } else {
+//            Log.i(TAG, "onAttachedToEngine is not main process")
+//        }
     }
 
 
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
+//        if (isMainProcess(binding.applicationContext)) {
         channel?.setMethodCallHandler(null)
         channel = null
         context = null
+        instances.remove(this)
+        Log.i(TAG, "onDetachedFromEngine instance = $this ,count = ${instances.size}")
+//        } else {
+//            Log.i(TAG, "onDetachedFromEngine is not main process")
+//        }
     }
+//
+//    /**
+//     * 判断该进程ID是否属于该进程名
+//     * @param context
+//     * @param pid 进程ID
+//     * @param p_name 进程名
+//     * @return true属于该进程名
+//     */
+//    private fun isPidOfProcessName(context: Context, pid: Int, p_name: String?): Boolean {
+//        if (p_name == null) return false
+//        var isMain = false
+//        val am = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+//        //遍历所有进程
+//        for (process in am.runningAppProcesses) {
+//            if (process.pid == pid) {
+//                //进程ID相同时判断该进程名是否一致
+//                if (process.processName == p_name) {
+//                    isMain = true
+//                }
+//                break
+//            }
+//        }
+//        return isMain
+//    }
+//
+//
+//    /**
+//     * 获取主进程名
+//     * @param context 上下文
+//     * @return 主进程名
+//     */
+//    private fun getMainProcessName(context: Context): String? {
+//        return try {
+//            context.packageManager.getApplicationInfo(context.packageName, 0).processName
+//        } catch (e: Exception) {
+//            null
+//        }
+//    }
+//
+//    /**
+//     * 判断是否主进程
+//     * @param context 上下文
+//     * @return true是主进程
+//     */
+//    private fun isMainProcess(context: Context): Boolean {
+//        return isPidOfProcessName(context, android.os.Process.myPid(), getMainProcessName(context))
+//    }
+
 }
 
 ///MethodChannel.Result的扩展，安全返回数据

@@ -1,3 +1,6 @@
+## V1.3.2+3
+* Fix Multi-Process compatibility on Android
+* 
 ## V1.3.2+2
 * Fix MissingPluginException on Android
 
