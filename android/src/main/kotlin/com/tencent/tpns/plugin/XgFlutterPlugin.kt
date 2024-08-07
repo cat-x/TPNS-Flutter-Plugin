@@ -16,77 +16,25 @@ import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
-import io.flutter.plugin.common.PluginRegistry.Registrar
 import io.flutter.plugin.common.StandardMethodCodec
 
+@Keep
+public class XgFlutterPlugin() : FlutterPlugin, MethodCallHandler {
+    private var channel: MethodChannel? = null
+    private var context: Context? = null
+    val isNotInitialized: Boolean
+        get() = channel == null
 
-public class XgFlutterPlugin : FlutterPlugin, MethodCallHandler {
-
-    constructor() {
-        instance = this
-    }
-
-    constructor(binding: FlutterPlugin.FlutterPluginBinding, methodChannel: MethodChannel) {
-        context = binding.applicationContext
-        channel = methodChannel
-        instance = this
-    }
-
-    constructor(mRegistrar: Registrar, mChannel: MethodChannel) {
-        context = mRegistrar.context().applicationContext
-        channel = mChannel
-        instance = this
+    init {
+        INSTANCE = this
     }
 
     companion object {
-        @SuppressLint("StaticFieldLeak")
-        lateinit var instance: XgFlutterPlugin
-        lateinit var channel: MethodChannel
-        @SuppressLint("StaticFieldLeak")
-        var context: Context? = null
-
-        @Keep
-        @JvmStatic
-        fun registerWith(registrar: Registrar) {
-            val messenger = registrar.messenger()
-            val taskQueue =
-                messenger.makeBackgroundTaskQueue()
-            val useChannel: MethodChannel = if (checkChannelInit()) {
-                channel
-            } else {
-                MethodChannel(messenger, "tpns_flutter_plugin", StandardMethodCodec.INSTANCE, taskQueue)
-            }
-            if (checkInstanceInit()){
-                context = registrar.context().applicationContext
-                channel = useChannel
-                useChannel.setMethodCallHandler(instance)
-            }else{
-                useChannel.setMethodCallHandler(XgFlutterPlugin(registrar, useChannel))
-            }
-
-
-            Log.i(TAG, "methodChannel registerWith XgFlutterPlugin")
-            Log.i(TAG, "instance = $instance")
-        }
-
-        fun checkChannelInit(): Boolean {
-            return try {
-                this::channel.isInitialized
-            } catch (e: Exception) {
-                false
-            }
-        }
-
-        fun checkInstanceInit(): Boolean {
-            return try {
-                this::instance.isInitialized
-            } catch (e: Exception) {
-                false
-            }
-        }
-
         //        private const val  TAG: String = "XgFlutterPlugin | Flutter"
         private const val TAG: String = "TPNSPlugin | Flutter"
+
+        @SuppressLint("StaticFieldLeak")
+        lateinit var INSTANCE: XgFlutterPlugin
     }
 
     override fun onMethodCall(p0: MethodCall, p1: MethodChannel.Result) {
@@ -155,12 +103,12 @@ public class XgFlutterPlugin : FlutterPlugin, MethodCallHandler {
      */
     fun toFlutterMethod(methodName: String, para: Map<String, Any?>?) {
         Log.i(TAG, "调用Flutter=>${methodName}")
-        MainHandler.getInstance().post { channel.invokeMethod(methodName, para) }
+        MainHandler.getInstance().post { channel?.invokeMethod(methodName, para) }
     }
 
     fun toFlutterMethod(methodName: String, para: String) {
         Log.i(TAG, "调用Flutter=>${methodName}")
-        MainHandler.getInstance().post { channel.invokeMethod(methodName, para) }
+        MainHandler.getInstance().post { channel?.invokeMethod(methodName, para) }
     }
 
     /**
@@ -179,6 +127,7 @@ public class XgFlutterPlugin : FlutterPlugin, MethodCallHandler {
         XGPushConfig.setAccessId(context, value)
         result.safeSuccess(null)
     }
+
     /**
      * 设置accessKey
      */
@@ -211,7 +160,7 @@ public class XgFlutterPlugin : FlutterPlugin, MethodCallHandler {
     }
 
     fun mRegPush(methodName: String, para: Map<String, Any?>?) {
-        MainHandler.getInstance().post { channel.invokeMethod("startXg", para) }
+        MainHandler.getInstance().post { channel?.invokeMethod("startXg", para) }
     }
 
     /**
@@ -266,14 +215,14 @@ public class XgFlutterPlugin : FlutterPlugin, MethodCallHandler {
         XGPushManager.setTag(context, tagName, object : XGIOperateCallback {
             override fun onSuccess(p0: Any?, p1: Int) {
                 Log.i(TAG, "setTag successful")
-                val paraDict = mapOf("code" to 0,"type" to "tag", "msg" to  "setTag successful")
+                val paraDict = mapOf("code" to 0, "type" to "tag", "msg" to "setTag successful")
                 toFlutterMethod(Extras.XG_PUSH_DID_UPDATED_WITH_IDENENTIFIER, paraDict)
                 result.safeSuccess(true)
             }
 
             override fun onFail(p0: Any?, p1: Int, p2: String?) {
                 Log.i(TAG, "setTag failure")
-                val paraDict = mapOf("code" to p1,"type" to "tag", "msg" to  p2)
+                val paraDict = mapOf("code" to p1, "type" to "tag", "msg" to p2)
                 toFlutterMethod(Extras.XG_PUSH_DID_UPDATED_WITH_IDENENTIFIER, paraDict)
                 result.safeSuccess(false)
             }
@@ -297,14 +246,14 @@ public class XgFlutterPlugin : FlutterPlugin, MethodCallHandler {
         XGPushManager.setTags(context, operateName, tags, object : XGIOperateCallback {
             override fun onSuccess(p0: Any?, p1: Int) {
                 Log.i(TAG, "setTags successful")
-                val paraDict = mapOf("code" to 0,"type" to "tag", "msg" to  "setTags successful")
+                val paraDict = mapOf("code" to 0, "type" to "tag", "msg" to "setTags successful")
                 toFlutterMethod(Extras.XG_PUSH_DID_UPDATED_WITH_IDENENTIFIER, paraDict)
                 result.safeSuccess(true)
             }
 
             override fun onFail(p0: Any?, p1: Int, p2: String?) {
                 Log.i(TAG, "setTags failure")
-                val paraDict = mapOf("code" to p1,"type" to "tag", "msg" to  p2)
+                val paraDict = mapOf("code" to p1, "type" to "tag", "msg" to p2)
                 toFlutterMethod(Extras.XG_PUSH_DID_UPDATED_WITH_IDENENTIFIER, paraDict)
                 result.safeSuccess(false)
             }
@@ -337,14 +286,14 @@ public class XgFlutterPlugin : FlutterPlugin, MethodCallHandler {
         XGPushManager.addTags(context, operateName, tags, object : XGIOperateCallback {
             override fun onSuccess(p0: Any?, p1: Int) {
                 Log.i(TAG, "addTags successful")
-                val paraDict = mapOf("code" to 0,"type" to "tag", "msg" to  "addTags successful")
+                val paraDict = mapOf("code" to 0, "type" to "tag", "msg" to "addTags successful")
                 toFlutterMethod(Extras.XG_PUSH_DID_BIND_WITH_IDENENTIFIER, paraDict)
                 result.safeSuccess(true)
             }
 
             override fun onFail(p0: Any?, p1: Int, p2: String?) {
                 Log.i(TAG, "addTags failure")
-                val paraDict = mapOf("code" to p1,"type" to "tag", "msg" to  p2)
+                val paraDict = mapOf("code" to p1, "type" to "tag", "msg" to p2)
                 toFlutterMethod(Extras.XG_PUSH_DID_BIND_WITH_IDENENTIFIER, paraDict)
                 result.safeSuccess(false)
             }
@@ -365,7 +314,7 @@ public class XgFlutterPlugin : FlutterPlugin, MethodCallHandler {
         XGPushManager.deleteTag(context, tagName, object : XGIOperateCallback {
             override fun onSuccess(p0: Any?, p1: Int) {
                 Log.i(TAG, "deleteTag successful")
-                val paraDict = mapOf("code" to 0,"type" to "tag", "msg" to  "deleteTag successful")
+                val paraDict = mapOf("code" to 0, "type" to "tag", "msg" to "deleteTag successful")
                 toFlutterMethod(Extras.XG_PUSH_DID_UNBIND_WITH_IDENENTIFIER, paraDict)
                 result.safeSuccess(true)
             }
@@ -373,7 +322,7 @@ public class XgFlutterPlugin : FlutterPlugin, MethodCallHandler {
             override fun onFail(p0: Any?, p1: Int, p2: String?) {
                 Log.i(TAG, "deleteTag failure")
                 val para = "deleteTag failure----->code=${p1}--->message=${p2}"
-                val paraDict = mapOf("code" to p1,"type" to "tag", "msg" to  p2)
+                val paraDict = mapOf("code" to p1, "type" to "tag", "msg" to p2)
                 toFlutterMethod(Extras.XG_PUSH_DID_UNBIND_WITH_IDENENTIFIER, paraDict)
                 result.safeSuccess(false)
             }
@@ -398,14 +347,14 @@ public class XgFlutterPlugin : FlutterPlugin, MethodCallHandler {
         XGPushManager.deleteTags(context, operateName, tags, object : XGIOperateCallback {
             override fun onSuccess(p0: Any?, p1: Int) {
                 Log.i(TAG, "deleteTags successful")
-                val paraDict = mapOf("code" to 0,"type" to "tag", "msg" to  "deleteTags successful")
+                val paraDict = mapOf("code" to 0, "type" to "tag", "msg" to "deleteTags successful")
                 toFlutterMethod(Extras.XG_PUSH_DID_UNBIND_WITH_IDENENTIFIER, paraDict)
                 result.safeSuccess(true)
             }
 
             override fun onFail(p0: Any?, p1: Int, p2: String?) {
                 Log.i(TAG, "deleteTags failure")
-                val paraDict = mapOf("code" to p1,"type" to "tag", "msg" to  p2)
+                val paraDict = mapOf("code" to p1, "type" to "tag", "msg" to p2)
                 toFlutterMethod(Extras.XG_PUSH_DID_UNBIND_WITH_IDENENTIFIER, paraDict)
                 result.safeSuccess(false)
             }
@@ -426,14 +375,14 @@ public class XgFlutterPlugin : FlutterPlugin, MethodCallHandler {
         XGPushManager.cleanTags(context, operateName, object : XGIOperateCallback {
             override fun onSuccess(p0: Any?, p1: Int) {
                 Log.i(TAG, "cleanTags successful")
-                val paraDict = mapOf("code" to 0,"type" to "tag", "msg" to  "cleanTags successful")
+                val paraDict = mapOf("code" to 0, "type" to "tag", "msg" to "cleanTags successful")
                 toFlutterMethod(Extras.XG_PUSH_DID_CLEAR_WITH_IDENENTIFIER, paraDict)
                 result.safeSuccess(true)
             }
 
             override fun onFail(p0: Any?, p1: Int, p2: String?) {
                 Log.i(TAG, "cleanTags failure")
-                val paraDict = mapOf("code" to p1,"type" to "tag", "msg" to  p2)
+                val paraDict = mapOf("code" to p1, "type" to "tag", "msg" to p2)
                 toFlutterMethod(Extras.XG_PUSH_DID_CLEAR_WITH_IDENENTIFIER, paraDict)
                 result.safeSuccess(false)
             }
@@ -497,13 +446,13 @@ public class XgFlutterPlugin : FlutterPlugin, MethodCallHandler {
         XGPushManager.bindAccount(context, account, getAccountType(accountType), object : XGIOperateCallback {
             override fun onSuccess(p0: Any?, p1: Int) {
                 Log.i(TAG, "bindAccount successful")
-                val paraDict = mapOf("code" to 0,"type" to "account", "msg" to  "bindAccount successful")
+                val paraDict = mapOf("code" to 0, "type" to "account", "msg" to "bindAccount successful")
                 toFlutterMethod(Extras.XG_PUSH_DID_BIND_WITH_IDENENTIFIER, paraDict)
             }
 
             override fun onFail(p0: Any?, p1: Int, p2: String?) {
                 Log.i(TAG, "bindAccount failure")
-                val paraDict = mapOf("code" to p1,"type" to "account", "msg" to  p2)
+                val paraDict = mapOf("code" to p1, "type" to "account", "msg" to p2)
                 toFlutterMethod(Extras.XG_PUSH_DID_BIND_WITH_IDENENTIFIER, paraDict)
             }
         })
@@ -525,13 +474,13 @@ public class XgFlutterPlugin : FlutterPlugin, MethodCallHandler {
         XGPushManager.appendAccount(context, account, getAccountType(accountType), object : XGIOperateCallback {
             override fun onSuccess(p0: Any?, p1: Int) {
                 Log.i(TAG, "appendAccount successful")
-                val paraDict = mapOf("code" to 0,"type" to "account", "msg" to  "appendAccount successful")
+                val paraDict = mapOf("code" to 0, "type" to "account", "msg" to "appendAccount successful")
                 toFlutterMethod(Extras.XG_PUSH_DID_BIND_WITH_IDENENTIFIER, paraDict)
             }
 
             override fun onFail(p0: Any?, p1: Int, p2: String?) {
                 Log.i(TAG, "appendAccount failure")
-                val paraDict = mapOf("code" to p1,"type" to "account", "msg" to  p2)
+                val paraDict = mapOf("code" to p1, "type" to "account", "msg" to p2)
                 toFlutterMethod(Extras.XG_PUSH_DID_BIND_WITH_IDENENTIFIER, paraDict)
             }
         })
@@ -553,13 +502,13 @@ public class XgFlutterPlugin : FlutterPlugin, MethodCallHandler {
         XGPushManager.delAccount(context, account, getAccountType(accountType), object : XGIOperateCallback {
             override fun onSuccess(p0: Any?, p1: Int) {
                 Log.i(TAG, "delAccount successful")
-                val paraDict = mapOf("code" to 0,"type" to "account", "msg" to  "delAccount successful")
+                val paraDict = mapOf("code" to 0, "type" to "account", "msg" to "delAccount successful")
                 toFlutterMethod(Extras.XG_PUSH_DID_UNBIND_WITH_IDENENTIFIER, paraDict)
             }
 
             override fun onFail(p0: Any?, p1: Int, p2: String?) {
                 Log.i(TAG, "delAccount failure")
-                val paraDict = mapOf("code" to p1,"type" to "account", "msg" to  p2)
+                val paraDict = mapOf("code" to p1, "type" to "account", "msg" to p2)
                 toFlutterMethod(Extras.XG_PUSH_DID_UNBIND_WITH_IDENENTIFIER, paraDict)
             }
         })
@@ -574,13 +523,13 @@ public class XgFlutterPlugin : FlutterPlugin, MethodCallHandler {
         XGPushManager.delAllAccount(context, object : XGIOperateCallback {
             override fun onSuccess(p0: Any?, p1: Int) {
                 Log.i(TAG, "delAllAccount successful")
-                val paraDict = mapOf("code" to 0,"type" to "account", "msg" to  "delAllAccount successful")
+                val paraDict = mapOf("code" to 0, "type" to "account", "msg" to "delAllAccount successful")
                 toFlutterMethod(Extras.XG_PUSH_DID_CLEAR_WITH_IDENENTIFIER, paraDict)
             }
 
             override fun onFail(p0: Any?, p1: Int, p2: String?) {
                 Log.i(TAG, "delAllAccount failure")
-                val paraDict = mapOf("code" to p1,"type" to "account", "msg" to  p2)
+                val paraDict = mapOf("code" to p1, "type" to "account", "msg" to p2)
                 toFlutterMethod(Extras.XG_PUSH_DID_CLEAR_WITH_IDENENTIFIER, paraDict)
             }
         })
@@ -597,13 +546,13 @@ public class XgFlutterPlugin : FlutterPlugin, MethodCallHandler {
         XGPushManager.upsertAttributes(context, "upsertAttributes", attributesMap, object : XGIOperateCallback {
             override fun onSuccess(p0: Any?, p1: Int) {
                 Log.i(TAG, "upsertAttributes successful")
-                val paraDict = mapOf("code" to 0,"type" to "attributes", "msg" to  "upsertAttributes successful")
+                val paraDict = mapOf("code" to 0, "type" to "attributes", "msg" to "upsertAttributes successful")
                 toFlutterMethod(Extras.XG_PUSH_DID_BIND_WITH_IDENENTIFIER, paraDict)
             }
 
             override fun onFail(p0: Any?, p1: Int, p2: String?) {
                 Log.i(TAG, "upsertAttributes failure")
-                val paraDict = mapOf("code" to p1,"type" to "attributes", "msg" to  p2)
+                val paraDict = mapOf("code" to p1, "type" to "attributes", "msg" to p2)
                 toFlutterMethod(Extras.XG_PUSH_DID_BIND_WITH_IDENENTIFIER, paraDict)
             }
         })
@@ -620,13 +569,13 @@ public class XgFlutterPlugin : FlutterPlugin, MethodCallHandler {
         XGPushManager.delAttributes(context, "delAttributes", attributesList, object : XGIOperateCallback {
             override fun onSuccess(p0: Any?, p1: Int) {
                 Log.i(TAG, "delAttributes successful")
-                val paraDict = mapOf("code" to 0,"type" to "attributes", "msg" to  "delAttributes successful")
+                val paraDict = mapOf("code" to 0, "type" to "attributes", "msg" to "delAttributes successful")
                 toFlutterMethod(Extras.XG_PUSH_DID_UNBIND_WITH_IDENENTIFIER, paraDict)
             }
 
             override fun onFail(p0: Any?, p1: Int, p2: String?) {
                 Log.i(TAG, "delAttributes failure")
-                val paraDict = mapOf("code" to p1,"type" to "attributes", "msg" to  p2)
+                val paraDict = mapOf("code" to p1, "type" to "attributes", "msg" to p2)
                 toFlutterMethod(Extras.XG_PUSH_DID_UNBIND_WITH_IDENENTIFIER, paraDict)
             }
         })
@@ -640,19 +589,24 @@ public class XgFlutterPlugin : FlutterPlugin, MethodCallHandler {
         val attributesMap = map?.get(Extras.ATTRIBUTES) as HashMap<String, String>
         Log.i(TAG, "调用信鸽SDK-->clearAndAppendAttributes()----->attributes=${attributesMap}")
         val context = context
-        XGPushManager.clearAndAppendAttributes(context, "clearAndAppendAttributes", attributesMap, object : XGIOperateCallback {
-            override fun onSuccess(p0: Any?, p1: Int) {
-                Log.i(TAG, "clearAndAppendAttributes successful")
-                val paraDict = mapOf("code" to 0,"type" to "attributes", "msg" to  "clearAndAppendAttributes successful")
-                toFlutterMethod(Extras.XG_PUSH_DID_UPDATED_WITH_IDENENTIFIER, paraDict)
-            }
+        XGPushManager.clearAndAppendAttributes(
+            context,
+            "clearAndAppendAttributes",
+            attributesMap,
+            object : XGIOperateCallback {
+                override fun onSuccess(p0: Any?, p1: Int) {
+                    Log.i(TAG, "clearAndAppendAttributes successful")
+                    val paraDict =
+                        mapOf("code" to 0, "type" to "attributes", "msg" to "clearAndAppendAttributes successful")
+                    toFlutterMethod(Extras.XG_PUSH_DID_UPDATED_WITH_IDENENTIFIER, paraDict)
+                }
 
-            override fun onFail(p0: Any?, p1: Int, p2: String?) {
-                Log.i(TAG, "clearAndAppendAttributes failure")
-                val paraDict = mapOf("code" to p1,"type" to "attributes", "msg" to  p2)
-                toFlutterMethod(Extras.XG_PUSH_DID_UPDATED_WITH_IDENENTIFIER, paraDict)
-            }
-        })
+                override fun onFail(p0: Any?, p1: Int, p2: String?) {
+                    Log.i(TAG, "clearAndAppendAttributes failure")
+                    val paraDict = mapOf("code" to p1, "type" to "attributes", "msg" to p2)
+                    toFlutterMethod(Extras.XG_PUSH_DID_UPDATED_WITH_IDENENTIFIER, paraDict)
+                }
+            })
     }
 
     /**
@@ -664,13 +618,13 @@ public class XgFlutterPlugin : FlutterPlugin, MethodCallHandler {
         XGPushManager.clearAttributes(context, "clearAttributes", object : XGIOperateCallback {
             override fun onSuccess(p0: Any?, p1: Int) {
                 Log.i(TAG, "clearAttributes successful")
-                val paraDict = mapOf("code" to 0,"type" to "attributes", "msg" to  "clearAttributes successful")
+                val paraDict = mapOf("code" to 0, "type" to "attributes", "msg" to "clearAttributes successful")
                 toFlutterMethod(Extras.XG_PUSH_DID_CLEAR_WITH_IDENENTIFIER, paraDict)
             }
 
             override fun onFail(p0: Any?, p1: Int, p2: String?) {
                 Log.i(TAG, "clearAttributes failure")
-                val paraDict = mapOf("code" to p1,"type" to "attributes", "msg" to  p2)
+                val paraDict = mapOf("code" to p1, "type" to "attributes", "msg" to p2)
                 toFlutterMethod(Extras.XG_PUSH_DID_CLEAR_WITH_IDENENTIFIER, paraDict)
             }
         })
@@ -698,7 +652,7 @@ public class XgFlutterPlugin : FlutterPlugin, MethodCallHandler {
      * 获取厂商推送 token  XGPushManager.registerPush 成功后
      */
     fun getOtherPushToken(call: MethodCall?, result: MethodChannel.Result) {
-        val otherPushToken: String = (XGPushConfig.getOtherPushToken(context))?:""
+        val otherPushToken: String = (XGPushConfig.getOtherPushToken(context)) ?: ""
         Log.i(TAG, "调用信鸽SDK-->getOtherPushToken()---otherPushToken=${otherPushToken}")
         result.success(otherPushToken)
     }
@@ -707,7 +661,7 @@ public class XgFlutterPlugin : FlutterPlugin, MethodCallHandler {
      * 获取厂商推送品牌  XGPushManager.registerPush 成功后
      */
     fun getOtherPushType(call: MethodCall?, result: MethodChannel.Result) {
-        val otherPushType: String = (XGPushConfig.getOtherPushType(context))?:""
+        val otherPushType: String = (XGPushConfig.getOtherPushType(context)) ?: ""
         Log.i(TAG, "调用信鸽SDK-->getOtherPushType()---otherPushType=${otherPushType}")
         result.success(otherPushType)
     }
@@ -742,8 +696,10 @@ public class XgFlutterPlugin : FlutterPlugin, MethodCallHandler {
         val channelName = map[Extras.CHANNEL_NAME] as String?
         if (map.size == 2) {
             Log.i(TAG, "调用信鸽SDK-->createNotificationChannel(${channelId}, ${channelName})")
-            XGPushManager.createNotificationChannel(context, 
-                channelId, channelName, true, true, true, null)
+            XGPushManager.createNotificationChannel(
+                context,
+                channelId, channelName, true, true, true, null
+            )
         } else {
             val enableVibration = map[Extras.ENABLE_VIBRATION] as Boolean? ?: false
             val enableLights = map[Extras.ENABLE_LIGHTS] as Boolean? ?: false
@@ -751,17 +707,27 @@ public class XgFlutterPlugin : FlutterPlugin, MethodCallHandler {
             val soundFileName = map[Extras.SOUND_FILE_NAME] as String? ?: ""
 
             val context = context
-            if (context != null){
+            if (context != null) {
                 val soundFileId = context.resources.getIdentifier(soundFileName, "raw", context.packageName)
                 if (soundFileId > 0) {
                     val soundUri = "android.resource://" + context.packageName + "/" + soundFileId
-                    Log.i(TAG, "调用信鸽SDK-->createNotificationChannel(${channelId}, ${channelName}, ${enableVibration}, ${enableLights}, ${enableSound}, ${soundUri})")
-                    XGPushManager.createNotificationChannel(context,
-                        channelId, channelName, enableVibration, enableLights, enableSound, Uri.parse(soundUri))
+                    Log.i(
+                        TAG,
+                        "调用信鸽SDK-->createNotificationChannel(${channelId}, ${channelName}, ${enableVibration}, ${enableLights}, ${enableSound}, ${soundUri})"
+                    )
+                    XGPushManager.createNotificationChannel(
+                        context,
+                        channelId, channelName, enableVibration, enableLights, enableSound, Uri.parse(soundUri)
+                    )
                 } else {
-                    Log.i(TAG, "调用信鸽SDK-->createNotificationChannel(${channelId}, ${channelName}, ${enableVibration}, ${enableLights}, ${enableSound}, null)")
-                    XGPushManager.createNotificationChannel(context,
-                        channelId, channelName, enableVibration, enableLights, enableSound, null)
+                    Log.i(
+                        TAG,
+                        "调用信鸽SDK-->createNotificationChannel(${channelId}, ${channelName}, ${enableVibration}, ${enableLights}, ${enableSound}, null)"
+                    )
+                    XGPushManager.createNotificationChannel(
+                        context,
+                        channelId, channelName, enableVibration, enableLights, enableSound, null
+                    )
                 }
             }
         }
@@ -863,7 +829,7 @@ public class XgFlutterPlugin : FlutterPlugin, MethodCallHandler {
      * 判断是否为谷歌手机
      */
     private fun isGoogleRom(call: MethodCall, result: MethodChannel.Result) {
-      result.success(DeviceInfoUtil.isGoogleRom())
+        result.success(DeviceInfoUtil.isGoogleRom())
     }
 
     /**
@@ -915,37 +881,27 @@ public class XgFlutterPlugin : FlutterPlugin, MethodCallHandler {
     }
 
 
-
     override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
-        val taskQueue =
-            flutterPluginBinding.binaryMessenger.makeBackgroundTaskQueue()
-        val useChannel: MethodChannel = if (checkChannelInit()) {
-            channel
-        } else {
-            MethodChannel(
-                flutterPluginBinding.binaryMessenger,
-                "tpns_flutter_plugin",
-                StandardMethodCodec.INSTANCE,
-                taskQueue
-            )
-        }
-
-        if (checkInstanceInit()){
-            context = flutterPluginBinding.applicationContext
-            channel = useChannel
-            useChannel.setMethodCallHandler(instance)
-        }else{
-            useChannel.setMethodCallHandler(XgFlutterPlugin(flutterPluginBinding, useChannel))
-        }
+//        val taskQueue =
+//            flutterPluginBinding.binaryMessenger.makeBackgroundTaskQueue()
+        context = flutterPluginBinding.applicationContext
+        channel = MethodChannel(
+            flutterPluginBinding.binaryMessenger,
+            "tpns_flutter_plugin",
+            StandardMethodCodec.INSTANCE
+//                ,taskQueue
+        )
+        channel?.setMethodCallHandler(this)
 
         Log.i(TAG, "methodChannel onAttachedToEngine XgFlutterPlugin")
-        Log.i(TAG, "onAttachedToEngine instance = $instance")
+        Log.i(TAG, "onAttachedToEngine instance = $this")
         XGMessageReceiver.sendHandlerMessage()
     }
 
 
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
-        channel.setMethodCallHandler(null)
+        channel?.setMethodCallHandler(null)
+        channel = null
         context = null
     }
 }

@@ -1,3 +1,6 @@
+## V1.3.2+2
+* Fix MissingPluginException on Android
+
 ## V1.3.2+1
 * Maybe fix some bugs on Android
 

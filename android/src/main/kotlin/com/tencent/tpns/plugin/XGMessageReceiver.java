@@ -56,13 +56,13 @@ public class XGMessageReceiver extends XGPushBaseReceiver {
     @Override
     public void onRegisterResult(Context context, int errorCode, XGPushRegisterResult message) {
         try {
-            if (XgFlutterPlugin.instance == null) {
+            if (XgFlutterPlugin.INSTANCE.isNotInitialized()) {
                 Log.w(TAG, "XgFlutterPlugin.instance has not initialized");
                 return;
             }
             if (context == null || message == null) {
                 String msg = "TPNS token: null" + " error: context==null||message == null";
-                XgFlutterPlugin.instance.toFlutterMethod(Extras.ON_REGISTERED_DEVICE_TOKEN, msg);
+                XgFlutterPlugin.INSTANCE.toFlutterMethod(Extras.ON_REGISTERED_DEVICE_TOKEN, msg);
                 return;
             }
             if (errorCode == XGPushBaseReceiver.SUCCESS) {
@@ -70,11 +70,11 @@ public class XGMessageReceiver extends XGPushBaseReceiver {
                 // 过滤掉厂商通道注册结果
                 if (!TextUtils.isEmpty(token)) {
                     String msg = token;
-                    XgFlutterPlugin.instance.toFlutterMethod(Extras.ON_REGISTERED_DONE, msg);
+                    XgFlutterPlugin.INSTANCE.toFlutterMethod(Extras.ON_REGISTERED_DONE, msg);
                 }
             } else {
                 String msg = "TPNS token: " + message.getToken() + " error: " + errorCode;
-                XgFlutterPlugin.instance.toFlutterMethod(Extras.ON_REGISTERED_DEVICE_TOKEN, msg);
+                XgFlutterPlugin.INSTANCE.toFlutterMethod(Extras.ON_REGISTERED_DEVICE_TOKEN, msg);
             }
         } catch (Throwable e) {
             Log.w(TAG, "onRegisterResult error: " + e.toString());
@@ -84,22 +84,22 @@ public class XGMessageReceiver extends XGPushBaseReceiver {
     @Override
     public void onUnregisterResult(Context context, int errorCode) {
         try {
-            if (XgFlutterPlugin.instance == null) {
+            if (XgFlutterPlugin.INSTANCE.isNotInitialized()) {
                 Log.w(TAG, "XgFlutterPlugin.instance has not initialized");
                 return;
             }
             if (context == null) {
                 String msg = "context == null---->Unregister failure";
-                XgFlutterPlugin.instance.toFlutterMethod(Extras.UN_REGISTERED, msg);
+                XgFlutterPlugin.INSTANCE.toFlutterMethod(Extras.UN_REGISTERED, msg);
                 return;
             }
             String text = "";
             if (errorCode == XGPushBaseReceiver.SUCCESS) {
                 String msg = "Unregister successful";
-                XgFlutterPlugin.instance.toFlutterMethod(Extras.UN_REGISTERED, msg);
+                XgFlutterPlugin.INSTANCE.toFlutterMethod(Extras.UN_REGISTERED, msg);
             } else {
                 String msg = "Unregister failure---->code==" + errorCode;
-                XgFlutterPlugin.instance.toFlutterMethod(Extras.UN_REGISTERED, msg);
+                XgFlutterPlugin.INSTANCE.toFlutterMethod(Extras.UN_REGISTERED, msg);
             }
         } catch (Throwable e) {
             Log.w(TAG, "onUnregisterResult error: " + e.toString());
@@ -144,7 +144,7 @@ public class XGMessageReceiver extends XGPushBaseReceiver {
     @Override
     public void onTextMessage(Context context, XGPushTextMessage message) {
         try {
-            if (XgFlutterPlugin.instance == null) {
+            if (XgFlutterPlugin.INSTANCE.isNotInitialized()) {
                 Log.w(TAG, "XgFlutterPlugin.instance has not initialized");
                 return;
             }
@@ -160,7 +160,7 @@ public class XGMessageReceiver extends XGPushBaseReceiver {
             para.put(Extras.CUSTOM_MESSAGE, customContent);
             para.put(Extras.PUSH_CHANNEL, pushChannel);
             //交由Flutter自主处理
-            XgFlutterPlugin.instance.toFlutterMethod(Extras.ON_RECEIVE_MESSAGE, para);
+            XgFlutterPlugin.INSTANCE.toFlutterMethod(Extras.ON_RECEIVE_MESSAGE, para);
         } catch (Throwable e) {
             Log.w(TAG, "onTextMessage error: " + e.toString());
         }
@@ -169,7 +169,7 @@ public class XGMessageReceiver extends XGPushBaseReceiver {
     @Override
     public void onNotificationClickedResult(Context context, XGPushClickedResult notifiShowedRlt) {
         try {
-            if (XgFlutterPlugin.instance == null) {
+            if (XgFlutterPlugin.INSTANCE.isNotInitialized()) {
                 Log.w(TAG, "XgFlutterPlugin.instance has not initialized");
                 receiverHandler = new ReceiverHandler(context, notifiShowedRlt);
             } else {
@@ -207,7 +207,7 @@ public class XGMessageReceiver extends XGPushBaseReceiver {
             para.put(Extras.ACTIVITY_NAME, activityName);
             para.put(Extras.ACTION_TYPE, actionType);
             //交由Flutter自主处理
-            XgFlutterPlugin.instance.toFlutterMethod(Extras.XG_PUSH_CLICK_ACTION, para);
+            XgFlutterPlugin.INSTANCE.toFlutterMethod(Extras.XG_PUSH_CLICK_ACTION, para);
         } catch (Throwable e) {
             Log.w(TAG, "processClickActionToFlutter error: " + e.toString());
         }
@@ -216,7 +216,7 @@ public class XGMessageReceiver extends XGPushBaseReceiver {
     @Override
     public void onNotificationShowedResult(Context context, XGPushShowedResult message) {
         try {
-            if (XgFlutterPlugin.instance == null) {
+            if (XgFlutterPlugin.INSTANCE.isNotInitialized()) {
                 Log.w(TAG, "XgFlutterPlugin.instance has not initialized");
                 return;
             }
@@ -246,7 +246,7 @@ public class XGMessageReceiver extends XGPushBaseReceiver {
             para.put(Extras.ACTIVITY, activityPath);
             para.put(Extras.NOTIFACTION_ACTION_TYPE, notificationActionType);
             //交由Flutter自主处理
-            XgFlutterPlugin.instance.toFlutterMethod(Extras.ON_RECEIVE_NOTIFICATION_RESPONSE, para);
+            XgFlutterPlugin.INSTANCE.toFlutterMethod(Extras.ON_RECEIVE_NOTIFICATION_RESPONSE, para);
         } catch (Throwable e) {
             Log.w(TAG, "onNotificationShowedResult error: " + e.toString());
         }
