@@ -30,7 +30,7 @@ public class XgFlutterPlugin() : FlutterPlugin, MethodCallHandler {
         private const val TAG: String = "TPNSPlugin | Flutter"
         var instances: MutableList<XgFlutterPlugin> = ArrayList<XgFlutterPlugin>()
         val isNotInitialized: Boolean
-            get() = instances.isEmpty() || instances.any { it.channel == null }
+            get() = instances.isEmpty() || instances.all { it.channel == null }
 
         private fun invokeMethod(method: String, args: Any?) {
             for (instance in instances) {
