@@ -6,8 +6,8 @@
       dependencies:
         tpns_flutter_plugin:
           git:
-            url: https://github.com/TencentCloud/TPNS-Flutter-Plugin
-            ref: V1.3.2+3
+            url: https://github.com/cat-x/TPNS-Flutter-Plugin
+            ref: V1.3.3+1
 ```
 
 - 注意：由于TPNS插件名变更xg_flutter_plugin->tpns_flutter_plugin，更新插件时V1.0.4及以上版本请使用tpns_flutter_plugin

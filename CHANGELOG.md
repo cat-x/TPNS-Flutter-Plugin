@@ -1,3 +1,7 @@
+## V1.3.3+1
+* use TPNS iOS SDK 1.4.0.4
+* Sync office 1.3.3
+
 ## V1.3.2+3
 * Fix Multi-Process compatibility on Android
 * 
