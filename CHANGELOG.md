@@ -1,3 +1,7 @@
+## V1.3.6
+* use TPNS iOS SDK 1.4.0.6
+* use Android SDK 1.4.4.5
+
 ## V1.3.5
 * remove AndroidManifest package
 
