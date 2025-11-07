@@ -45,6 +45,6 @@ android {
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     //添加以下依赖
-    implementation 'com.tencent.tpns:tpns:1.4.4.5-release'
+    implementation 'com.tencent.tpns:tpns:1.4.4.6-release'
     compileOnly files('libs/flutter.jar')
 }
