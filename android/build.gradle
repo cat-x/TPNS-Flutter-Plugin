@@ -68,7 +68,7 @@ android {
 
     dependencies {
         //添加以下依赖
-        implementation 'com.tencent.tpns:tpns:1.4.3.8-release'
+        implementation 'com.tencent.tpns:tpns:1.4.4.5-release'
         testImplementation 'org.jetbrains.kotlin:kotlin-test'
         testImplementation 'org.mockito:mockito-core:5.0.0'
         compileOnly files("$flutterRoot/bin/cache/artifacts/engine/android-arm/flutter.jar")

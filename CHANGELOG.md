@@ -1,16 +1,29 @@
+## V1.3.6
+* use TPNS iOS SDK 1.4.0.6
+* use Android SDK 1.4.4.5
+
+## V1.3.5
+* remove AndroidManifest package
+
+## V1.3.4
+* use TPNS iOS SDK 1.4.0.5
+
 ## V1.3.3+1
 * use TPNS iOS SDK 1.4.0.4
 * Sync office 1.3.3
 
+## V1.3.3
+* use TPNS iOS SDK 1.4.0.4
+* 
 ## V1.3.2+3
 * Fix Multi-Process compatibility on Android
-* 
+*
 ## V1.3.2+2
 * Fix MissingPluginException on Android
 
 ## V1.3.2+1
 * Maybe fix some bugs on Android
-
+* 
 ## V1.3.2
 * build.gradle add namespace
 
